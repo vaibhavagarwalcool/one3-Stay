@@ -3,50 +3,730 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Manage Listings</title>
-<link rel="stylesheet" href="assets/style.css">
+<title>Admin — One3 Stay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<header class="site-header">
-  <h1>🔧 Admin Panel</h1>
-  <p id="bizNameAdmin"></p>
-</header>
-
-<div id="loginScreen" class="login-box">
-  <h3>Admin Login</h3>
-  <form id="loginForm">
-    <label>Email</label>
-    <input name="email" type="email" required style="width:100%;padding:9px;margin:6px 0 12px;border-radius:8px;border:1px solid #ddd">
-    <label>Password</label>
-    <input name="password" type="password" required style="width:100%;padding:9px;margin:6px 0 12px;border-radius:8px;border:1px solid #ddd">
-    <button class="btn primary" type="submit" style="width:100%">Login</button>
-    <div id="loginMsg" class="muted" style="margin-top:8px"></div>
-  </form>
-  <p class="muted" style="margin-top:14px">First time? Create your admin login in Supabase Dashboard → Authentication → Users → Add User. See README.md Step 3.</p>
+<div id="loginScreen">
+  <div class="login-box">
+    <h2 style="margin-top:0">🔧 Admin Login</h2>
+    <p style="color:var(--muted);font-size:.88rem">Sign in with the email/password you created in Supabase Authentication.</p>
+    <label style="font-size:.82rem;font-weight:700;color:var(--muted)">Email</label>
+    <input type="email" id="loginEmail" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;margin:6px 0 12px">
+    <label style="font-size:.82rem;font-weight:700;color:var(--muted)">Password</label>
+    <input type="password" id="loginPassword" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;margin:6px 0 16px">
+    <button class="btn block" id="loginBtn">Log in</button>
+    <p id="loginError" style="color:#b3402e;font-size:.85rem;margin-top:10px"></p>
+  </div>
 </div>
 
-<div id="adminPanel" style="display:none">
-  <nav class="tabs">
-    <button class="active" onclick="showAdminTab('properties')">🏠 Properties</button>
-    <button onclick="showAdminTab('rooms')">🚪 Rooms</button>
-    <button onclick="showAdminTab('tiffin')">🍱 Tiffin</button>
-    <button onclick="showAdminTab('inventory')">📦 Inventory</button>
-    <button onclick="showAdminTab('inquiries')">📥 Inquiries</button>
-    <button onclick="logout()">🚪 Logout</button>
+<div id="adminApp" style="display:none">
+  <div class="admin-header">
+    <h2 style="margin:0">🔧 Admin Panel</h2>
+    <p style="margin:4px 0 0;opacity:.85;font-size:.88rem" id="adminBizName">One3 Stay</p>
+  </div>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab-btn active" data-tab="properties">🏠 Properties</button>
+    <button class="tab-btn" data-tab="rooms">🚪 Rooms</button>
+    <button class="tab-btn" data-tab="tiffin">🍱 Tiffin</button>
+    <button class="tab-btn" data-tab="inventory">📦 Inventory</button>
+    <button class="tab-btn" data-tab="services">🤝 Services</button>
+    <button class="tab-btn" data-tab="inquiries">📨 Inquiries</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
   </nav>
-  <main>
-    <div id="admin-properties"></div>
-    <div id="admin-rooms" style="display:none"></div>
-    <div id="admin-tiffin" style="display:none"></div>
-    <div id="admin-inventory" style="display:none"></div>
-    <div id="admin-inquiries" style="display:none"></div>
-  </main>
+
+  <!-- PROPERTIES -->
+  <section id="tab-properties">
+    <div class="toolbar"><button class="btn" id="addPropBtn">+ Add Property</button></div>
+    <div id="propList"></div>
+  </section>
+
+  <!-- ROOMS -->
+  <section id="tab-rooms" style="display:none">
+    <div class="toolbar"><button class="btn" id="addRoomBtn">+ Add Room</button></div>
+    <div id="roomList"></div>
+  </section>
+
+  <!-- TIFFIN -->
+  <section id="tab-tiffin" style="display:none">
+    <div class="toolbar"><button class="btn" id="addTiffinBtn">+ Add Tiffin Area</button></div>
+    <div id="tiffinList"></div>
+  </section>
+
+  <!-- INVENTORY -->
+  <section id="tab-inventory" style="display:none">
+    <div class="toolbar"><button class="btn" id="addInvBtn">+ Add Item</button></div>
+    <div id="invList"></div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="tab-services" style="display:none">
+    <div class="toolbar"><button class="btn" id="addServiceBtn">+ Add Service</button></div>
+    <div id="serviceList2"></div>
+  </section>
+
+  <!-- INQUIRIES -->
+  <section id="tab-inquiries" style="display:none">
+    <div id="inquiryList"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="tab-settings" style="display:none">
+    <div class="form-card">
+      <label>Business name</label>
+      <input type="text" id="setBizName">
+      <label>Default category shown first on Properties tab</label>
+      <select id="setDefaultCat">
+        <option value="all">All types</option>
+        <option value="flat">Flat</option>
+        <option value="homestay">Homestay</option>
+        <option value="hourly">Hourly Stay</option>
+        <option value="land">Land for Sale</option>
+      </select>
+      <label>Main WhatsApp number (used on Connect &amp; Services tab) — include country code, digits only</label>
+      <input type="text" id="setOwnerWa" placeholder="919999900000">
+      <button class="btn block" id="saveSettingsBtn">Save settings</button>
+    </div>
+    <div class="form-card">
+      <h3 style="margin-top:0">📦 Backup your data</h3>
+      <p style="color:var(--muted);font-size:.88rem">Downloads everything (properties, rooms, tiffin, inventory, services, inquiries, settings) as one JSON file. Keep this safe — use it to re-seed the database if you ever rebuild the site.</p>
+      <button class="btn outline block" id="exportBtn">⬇️ Download full backup (JSON)</button>
+    </div>
+    <div class="form-card">
+      <h3 style="margin-top:0">🚪 Log out</h3>
+      <button class="btn outline block" id="logoutBtn">Log out</button>
+    </div>
+  </section>
 </div>
 
-<script src="assets/config.js"></script>
-<script src="assets/app.js"></script>
-<script src="assets/admin.js"></script>
+<div class="toast" id="toastEl"></div>
+
+<script src="config.js"></script>
+<script>
+/* ---------------- AUTH ---------------- */
+async function checkSession(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session){ showApp(); } else { showLogin(); }
+}
+function showLogin(){
+  document.getElementById("loginScreen").style.display = "";
+  document.getElementById("adminApp").style.display = "none";
+}
+async function showApp(){
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("adminApp").style.display = "";
+  await loadSettingsAdmin();
+  await Promise.all([loadProperties(), loadTiffin(), loadInventory(), loadServices(), loadInquiries()]);
+}
+document.getElementById("loginBtn").addEventListener("click", async ()=>{
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ document.getElementById("loginError").textContent = error.message; return; }
+  showApp();
+});
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{ await sb.auth.signOut(); showLogin(); });
+
+/* ---------------- TABS ---------------- */
+document.getElementById("tabbar").addEventListener("click", e=>{
+  const btn = e.target.closest(".tab-btn"); if(!btn) return;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active", b===btn));
+  ["properties","rooms","tiffin","inventory","services","inquiries","settings"].forEach(t=>{
+    document.getElementById("tab-"+t).style.display = (t===btn.dataset.tab) ? "" : "none";
+  });
+  if(btn.dataset.tab==="rooms") loadRooms();
+});
+
+/* ===================== PROPERTIES ===================== */
+let PROP_CACHE = [];
+async function loadProperties(){
+  const { data, error } = await sb.from("properties").select("*").order("pinned",{ascending:false}).order("sort_order");
+  if(error){ toast("Error loading properties: "+error.message); return; }
+  PROP_CACHE = data || [];
+  renderProperties();
+}
+function renderProperties(){
+  const wrap = document.getElementById("propList");
+  if(PROP_CACHE.length===0){ wrap.innerHTML = `<div class="empty-state">No properties yet. Click "+ Add Property".</div>`; return; }
+  wrap.innerHTML = PROP_CACHE.map(p=>`
+    <div class="admin-row">
+      <div class="top">
+        <div>
+          <div class="title">${escapeHtml(p.title)} ${p.pinned?'⭐':''}</div>
+          <div class="meta">${escapeHtml(p.type)} · ${escapeHtml(p.area||"")} · ${p.availability?"Available":"Unavailable"} · order ${p.sort_order||0}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" data-edit="${p.id}">Edit</button>
+        <button data-dup="${p.id}">Duplicate</button>
+        <button class="gold" data-pin="${p.id}">${p.pinned?"Unpin":"Pin / Feature"}</button>
+        <button class="danger" data-del="${p.id}">Delete</button>
+      </div>
+    </div>`).join("");
+}
+document.getElementById("propList").addEventListener("click", async e=>{
+  const editId = e.target.closest("[data-edit]")?.dataset.edit;
+  const dupId = e.target.closest("[data-dup]")?.dataset.dup;
+  const pinId = e.target.closest("[data-pin]")?.dataset.pin;
+  const delId = e.target.closest("[data-del]")?.dataset.del;
+  if(editId) openPropertyForm(PROP_CACHE.find(p=>String(p.id)===editId));
+  if(dupId){
+    const src = PROP_CACHE.find(p=>String(p.id)===dupId);
+    const copy = {...src}; delete copy.id; copy.title = src.title + " (Copy)"; delete copy.created_at;
+    const { error } = await sb.from("properties").insert([copy]);
+    if(error) toast("Error: "+error.message); else { toast("Duplicated"); loadProperties(); }
+  }
+  if(pinId){
+    const src = PROP_CACHE.find(p=>String(p.id)===pinId);
+    const { error } = await sb.from("properties").update({ pinned: !src.pinned }).eq("id", pinId);
+    if(error) toast("Error: "+error.message); else loadProperties();
+  }
+  if(delId){
+    if(!confirm("Delete this property? This cannot be undone.")) return;
+    const { error } = await sb.from("properties").delete().eq("id", delId);
+    if(error) toast("Error: "+error.message); else { toast("Deleted"); loadProperties(); }
+  }
+});
+document.getElementById("addPropBtn").addEventListener("click", ()=> openPropertyForm(null));
+
+function openPropertyForm(prop){
+  const isEdit = !!prop;
+  prop = prop || { title:"",area:"",type:"flat",price:"",availability:true,photos:"",videos:"",map_link:"",phone:"",whatsapp:"",custom_details:[],has_rooms:false,pinned:false,sort_order:0 };
+  const details = parseDetails(prop.custom_details);
+  const photos = splitList(prop.photos);
+
+  const html = `
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" style="max-width:560px">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-body" style="padding-top:16px">
+        <h2>${isEdit?"Edit":"Add"} Property</h2>
+        <label>Title</label><input id="f_title" value="${escapeHtml(prop.title)}">
+        <label>Area</label><input id="f_area" value="${escapeHtml(prop.area)}">
+        <label>Type</label>
+        <select id="f_type">
+          ${["flat","homestay","hourly","land"].map(t=>`<option value="${t}" ${prop.type===t?"selected":""}>${t}</option>`).join("")}
+        </select>
+        <label>Price / Rent text (e.g. ₹23,000/month)</label><input id="f_price" value="${escapeHtml(prop.price)}">
+        <label><input type="checkbox" id="f_avail" ${prop.availability?"checked":""}> Available</label>
+        <label><input type="checkbox" id="f_hasrooms" ${prop.has_rooms?"checked":""}> This property has multiple rooms (24-room style building)</label>
+        <label><input type="checkbox" id="f_pinned" ${prop.pinned?"checked":""}> Pin / feature at top</label>
+        <label>Sort order (lower shows first)</label><input type="number" id="f_sort" value="${prop.sort_order||0}">
+        <label>Phone (call)</label><input id="f_phone" value="${escapeHtml(prop.phone)}">
+        <label>WhatsApp number (with country code)</label><input id="f_wa" value="${escapeHtml(prop.whatsapp)}">
+        <label>Map link (Google Maps URL)</label><input id="f_map" value="${escapeHtml(prop.map_link)}">
+
+        <label>Photos — one URL per line. Upload photos via the box below, or paste Google Drive / direct links.</label>
+        <textarea id="f_photos" rows="3">${photos.join("\n")}</textarea>
+        <input type="file" id="f_photoUpload" accept="image/*" multiple style="margin-top:6px">
+        <div class="photo-chip-list" id="photoChips"></div>
+        <p class="small-note" style="padding:6px 0 0">Tap "★ Main" on a photo to make it the cover image. The first photo in the list is always shown on the card.</p>
+
+        <label>Videos — paste unlisted YouTube links, one per line (free &amp; unlimited)</label>
+        <textarea id="f_videos" rows="2">${splitList(prop.videos).join("\n")}</textarea>
+
+        <label>Custom details (add as many rows as you like — Security, Rules, Description, etc.)</label>
+        <div id="kvRows"></div>
+        <button class="btn outline" id="addKvBtn" type="button">+ Add detail row</button>
+
+        <div class="fixed-bar" style="margin-top:16px;padding:0">
+          <button class="btn block" id="savePropBtn">Save Property</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  injectModal(html);
+  renderPhotoChips(splitList(prop.photos));
+  renderKvRows(details);
+
+  document.getElementById("f_photoUpload").addEventListener("change", async (e)=>{
+    const files = Array.from(e.target.files||[]);
+    if(files.length===0) return;
+    toast("Uploading...");
+    const urls = [];
+    for(const file of files){
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
+      const { error } = await sb.storage.from("photos").upload(path, file);
+      if(error){ toast("Upload failed: "+error.message); continue; }
+      const { data } = sb.storage.from("photos").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    const ta = document.getElementById("f_photos");
+    const current = splitList(ta.value);
+    ta.value = [...current, ...urls].join("\n");
+    renderPhotoChips(splitList(ta.value));
+    toast("Uploaded "+urls.length+" photo(s)");
+  });
+  document.getElementById("f_photos").addEventListener("change", ()=> renderPhotoChips(splitList(document.getElementById("f_photos").value)));
+
+  document.getElementById("addKvBtn").addEventListener("click", ()=>{
+    addKvRow({ key:"", value:"", visible:true });
+  });
+
+  document.getElementById("savePropBtn").addEventListener("click", async ()=>{
+    const row = {
+      title: document.getElementById("f_title").value.trim(),
+      area: document.getElementById("f_area").value.trim(),
+      type: document.getElementById("f_type").value,
+      price: document.getElementById("f_price").value.trim(),
+      availability: document.getElementById("f_avail").checked,
+      has_rooms: document.getElementById("f_hasrooms").checked,
+      pinned: document.getElementById("f_pinned").checked,
+      sort_order: parseInt(document.getElementById("f_sort").value)||0,
+      phone: document.getElementById("f_phone").value.trim(),
+      whatsapp: document.getElementById("f_wa").value.trim(),
+      map_link: document.getElementById("f_map").value.trim(),
+      photos: splitList(document.getElementById("f_photos").value).join(","),
+      videos: splitList(document.getElementById("f_videos").value).join(","),
+      custom_details: collectKvRows(),
+    };
+    let error;
+    if(isEdit){ ({ error } = await sb.from("properties").update(row).eq("id", prop.id)); }
+    else { ({ error } = await sb.from("properties").insert([row])); }
+    if(error){ toast("Error: "+error.message); return; }
+    toast("Saved"); closeModal(); loadProperties();
+  });
+}
+
+function renderPhotoChips(photos){
+  const wrap = document.getElementById("photoChips");
+  if(!wrap) return;
+  wrap.innerHTML = photos.map((u,i)=>`
+    <div class="photo-chip ${i===0?'main':''}">
+      <img src="${escapeHtml(u)}">
+      <button type="button" class="star" data-makemain="${i}">★ Main</button>
+    </div>`).join("");
+  wrap.querySelectorAll("[data-makemain]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const idx = parseInt(btn.dataset.makemain);
+      const ta = document.getElementById("f_photos");
+      const list = splitList(ta.value);
+      const [chosen] = list.splice(idx,1);
+      list.unshift(chosen);
+      ta.value = list.join("\n");
+      renderPhotoChips(list);
+    });
+  });
+}
+function addKvRow(d){
+  const wrap = document.getElementById("kvRows");
+  const row = document.createElement("div");
+  row.className = "kv-row";
+  row.innerHTML = `
+    <input placeholder="Key (e.g. Security)" class="kv-key" value="${escapeHtml(d.key)}">
+    <input placeholder="Value" class="kv-val" value="${escapeHtml(d.value)}">
+    <input type="checkbox" class="kv-vis" ${d.visible!==false?"checked":""} title="Visible to public">
+    <button type="button" class="kv-remove" style="border:none;background:none;color:#b3402e;font-size:1.1rem">✕</button>`;
+  row.querySelector(".kv-remove").addEventListener("click", ()=> row.remove());
+  wrap.appendChild(row);
+}
+function renderKvRows(details){
+  document.getElementById("kvRows").innerHTML = "";
+  details.forEach(d=> addKvRow(d));
+  if(details.length===0) addKvRow({key:"",value:"",visible:true});
+}
+function collectKvRows(){
+  return Array.from(document.querySelectorAll("#kvRows .kv-row")).map(row=>({
+    key: row.querySelector(".kv-key").value.trim(),
+    value: row.querySelector(".kv-val").value.trim(),
+    visible: row.querySelector(".kv-vis").checked,
+  })).filter(d=> d.key);
+}
+
+/* ===================== ROOMS ===================== */
+let ROOM_CACHE = [];
+async function loadRooms(){
+  const { data, error } = await sb.from("rooms").select("*").order("property_id").order("sort_order");
+  if(error){ toast("Error: "+error.message); return; }
+  ROOM_CACHE = data || [];
+  renderRooms();
+}
+function renderRooms(){
+  const wrap = document.getElementById("roomList");
+  if(ROOM_CACHE.length===0){ wrap.innerHTML = `<div class="empty-state">No rooms yet.</div>`; return; }
+  wrap.innerHTML = ROOM_CACHE.map(r=>{
+    const prop = PROP_CACHE.find(p=>String(p.id)===String(r.property_id));
+    return `<div class="admin-row">
+      <div class="top">
+        <div>
+          <div class="title">${escapeHtml(r.title)}</div>
+          <div class="meta">in: ${escapeHtml(prop?.title||("Property #"+r.property_id))} · ${r.availability?"Available":"Unavailable"}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" data-edit="${r.id}">Edit</button>
+        <button data-dup="${r.id}">Duplicate</button>
+        <button class="danger" data-del="${r.id}">Delete</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+document.getElementById("roomList").addEventListener("click", async e=>{
+  const editId = e.target.closest("[data-edit]")?.dataset.edit;
+  const dupId = e.target.closest("[data-dup]")?.dataset.dup;
+  const delId = e.target.closest("[data-del]")?.dataset.del;
+  if(editId) openRoomForm(ROOM_CACHE.find(r=>String(r.id)===editId));
+  if(dupId){
+    const src = ROOM_CACHE.find(r=>String(r.id)===dupId);
+    const copy = {...src}; delete copy.id; delete copy.created_at; copy.title = src.title + " (Copy)";
+    const { error } = await sb.from("rooms").insert([copy]);
+    if(error) toast("Error: "+error.message); else { toast("Duplicated"); loadRooms(); }
+  }
+  if(delId){
+    if(!confirm("Delete this room?")) return;
+    const { error } = await sb.from("rooms").delete().eq("id", delId);
+    if(error) toast("Error: "+error.message); else { toast("Deleted"); loadRooms(); }
+  }
+});
+document.getElementById("addRoomBtn").addEventListener("click", ()=> openRoomForm(null));
+
+function openRoomForm(room){
+  const isEdit = !!room;
+  room = room || { property_id:"", title:"", rent:"", availability:true, photos:"", videos:"", custom_details:[], sort_order:0 };
+  const details = parseDetails(room.custom_details);
+  const propOptions = PROP_CACHE.filter(p=>p.has_rooms).map(p=>`<option value="${p.id}" ${String(room.property_id)===String(p.id)?"selected":""}>${escapeHtml(p.title)}</option>`).join("");
+  const html = `
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" style="max-width:560px">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-body" style="padding-top:16px">
+        <h2>${isEdit?"Edit":"Add"} Room</h2>
+        <label>Belongs to property</label>
+        <select id="r_prop"><option value="">— Select —</option>${propOptions}</select>
+        <label>Room title (e.g. Room 101)</label><input id="r_title" value="${escapeHtml(room.title)}">
+        <label>Rent</label><input id="r_rent" value="${escapeHtml(room.rent)}">
+        <label><input type="checkbox" id="r_avail" ${room.availability?"checked":""}> Available</label>
+        <label>Sort order</label><input type="number" id="r_sort" value="${room.sort_order||0}">
+        <label>Photos — one URL per line</label>
+        <textarea id="r_photos" rows="2">${splitList(room.photos).join("\n")}</textarea>
+        <input type="file" id="r_photoUpload" accept="image/*" multiple style="margin-top:6px">
+        <label>Videos — YouTube links, one per line</label>
+        <textarea id="r_videos" rows="2">${splitList(room.videos).join("\n")}</textarea>
+        <label>Custom details</label>
+        <div id="kvRows"></div>
+        <button class="btn outline" id="addKvBtn" type="button">+ Add detail row</button>
+        <div class="fixed-bar" style="margin-top:16px;padding:0">
+          <button class="btn block" id="saveRoomBtn">Save Room</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  injectModal(html);
+  renderKvRows(details);
+  document.getElementById("addKvBtn").addEventListener("click", ()=> addKvRow({key:"",value:"",visible:true}));
+  document.getElementById("r_photoUpload").addEventListener("change", async (e)=>{
+    const files = Array.from(e.target.files||[]);
+    if(files.length===0) return;
+    toast("Uploading...");
+    const urls = [];
+    for(const file of files){
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
+      const { error } = await sb.storage.from("photos").upload(path, file);
+      if(error){ toast("Upload failed: "+error.message); continue; }
+      const { data } = sb.storage.from("photos").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    const ta = document.getElementById("r_photos");
+    ta.value = [...splitList(ta.value), ...urls].join("\n");
+    toast("Uploaded "+urls.length+" photo(s)");
+  });
+  document.getElementById("saveRoomBtn").addEventListener("click", async ()=>{
+    const property_id = document.getElementById("r_prop").value;
+    if(!property_id){ toast("Please choose a property"); return; }
+    const row = {
+      property_id,
+      title: document.getElementById("r_title").value.trim(),
+      rent: document.getElementById("r_rent").value.trim(),
+      availability: document.getElementById("r_avail").checked,
+      sort_order: parseInt(document.getElementById("r_sort").value)||0,
+      photos: splitList(document.getElementById("r_photos").value).join(","),
+      videos: splitList(document.getElementById("r_videos").value).join(","),
+      custom_details: collectKvRows(),
+    };
+    let error;
+    if(isEdit){ ({ error } = await sb.from("rooms").update(row).eq("id", room.id)); }
+    else { ({ error } = await sb.from("rooms").insert([row])); }
+    if(error){ toast("Error: "+error.message); return; }
+    toast("Saved"); closeModal(); loadRooms();
+  });
+}
+
+/* ===================== TIFFIN ===================== */
+let TIFFIN_CACHE = [];
+async function loadTiffin(){
+  const { data, error } = await sb.from("tiffin").select("*").order("sort_order");
+  if(error){ toast("Error: "+error.message); return; }
+  TIFFIN_CACHE = data || [];
+  document.getElementById("tiffinList").innerHTML = TIFFIN_CACHE.map(t=>`
+    <div class="admin-row">
+      <div class="top"><div><div class="title">${escapeHtml(t.area)}</div><div class="meta">${escapeHtml(t.price||"")} · ${t.availability?"Available":"Unavailable"}</div></div></div>
+      <div class="actions">
+        <button class="primary" data-edit="${t.id}">Edit</button>
+        <button data-dup="${t.id}">Duplicate</button>
+        <button class="danger" data-del="${t.id}">Delete</button>
+      </div>
+    </div>`).join("") || `<div class="empty-state">No tiffin areas yet.</div>`;
+}
+document.getElementById("tiffinList").addEventListener("click", async e=>{
+  const editId = e.target.closest("[data-edit]")?.dataset.edit;
+  const dupId = e.target.closest("[data-dup]")?.dataset.dup;
+  const delId = e.target.closest("[data-del]")?.dataset.del;
+  if(editId) openTiffinForm(TIFFIN_CACHE.find(t=>String(t.id)===editId));
+  if(dupId){
+    const src = TIFFIN_CACHE.find(t=>String(t.id)===dupId);
+    const copy = {...src}; delete copy.id; delete copy.created_at; copy.area = src.area + " (Copy)";
+    const { error } = await sb.from("tiffin").insert([copy]);
+    if(error) toast("Error: "+error.message); else { toast("Duplicated"); loadTiffin(); }
+  }
+  if(delId){ if(!confirm("Delete?")) return; const { error } = await sb.from("tiffin").delete().eq("id", delId); if(error) toast("Error: "+error.message); else { toast("Deleted"); loadTiffin(); } }
+});
+document.getElementById("addTiffinBtn").addEventListener("click", ()=> openTiffinForm(null));
+function openTiffinForm(t){
+  const isEdit = !!t;
+  t = t || { area:"",price:"",menu:"",whatsapp:"",availability:true,sort_order:0 };
+  const html = `
+  <div class="modal-overlay" id="modalOverlay"><div class="modal" style="max-width:480px">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-body" style="padding-top:16px">
+      <h2>${isEdit?"Edit":"Add"} Tiffin Area</h2>
+      <label>Area</label><input id="t_area" value="${escapeHtml(t.area)}">
+      <label>Price</label><input id="t_price" value="${escapeHtml(t.price)}">
+      <label>Menu</label><textarea id="t_menu" rows="2">${escapeHtml(t.menu)}</textarea>
+      <label>WhatsApp number</label><input id="t_wa" value="${escapeHtml(t.whatsapp)}">
+      <label><input type="checkbox" id="t_avail" ${t.availability?"checked":""}> Available</label>
+      <label>Sort order</label><input type="number" id="t_sort" value="${t.sort_order||0}">
+      <div class="fixed-bar" style="margin-top:16px;padding:0"><button class="btn block" id="saveTiffinBtn">Save</button></div>
+    </div></div></div>`;
+  injectModal(html);
+  document.getElementById("saveTiffinBtn").addEventListener("click", async ()=>{
+    const row = { area:document.getElementById("t_area").value.trim(), price:document.getElementById("t_price").value.trim(),
+      menu:document.getElementById("t_menu").value.trim(), whatsapp:document.getElementById("t_wa").value.trim(),
+      availability:document.getElementById("t_avail").checked, sort_order: parseInt(document.getElementById("t_sort").value)||0 };
+    let error;
+    if(isEdit){ ({error} = await sb.from("tiffin").update(row).eq("id", t.id)); } else { ({error} = await sb.from("tiffin").insert([row])); }
+    if(error){ toast("Error: "+error.message); return; }
+    toast("Saved"); closeModal(); loadTiffin();
+  });
+}
+
+/* ===================== INVENTORY ===================== */
+let INV_CACHE = [];
+async function loadInventory(){
+  const { data, error } = await sb.from("inventory").select("*").order("sort_order");
+  if(error){ toast("Error: "+error.message); return; }
+  INV_CACHE = data || [];
+  document.getElementById("invList").innerHTML = INV_CACHE.map(i=>`
+    <div class="admin-row">
+      <div class="top"><div><div class="title">${escapeHtml(i.item)}</div><div class="meta">${escapeHtml(i.price||"")} · ${i.availability?"Available":"Sold"}</div></div></div>
+      <div class="actions">
+        <button class="primary" data-edit="${i.id}">Edit</button>
+        <button data-dup="${i.id}">Duplicate</button>
+        <button class="danger" data-del="${i.id}">Delete</button>
+      </div>
+    </div>`).join("") || `<div class="empty-state">No items yet.</div>`;
+}
+document.getElementById("invList").addEventListener("click", async e=>{
+  const editId = e.target.closest("[data-edit]")?.dataset.edit;
+  const dupId = e.target.closest("[data-dup]")?.dataset.dup;
+  const delId = e.target.closest("[data-del]")?.dataset.del;
+  if(editId) openInvForm(INV_CACHE.find(i=>String(i.id)===editId));
+  if(dupId){
+    const src = INV_CACHE.find(i=>String(i.id)===dupId);
+    const copy = {...src}; delete copy.id; delete copy.created_at; copy.item = src.item + " (Copy)";
+    const { error } = await sb.from("inventory").insert([copy]);
+    if(error) toast("Error: "+error.message); else { toast("Duplicated"); loadInventory(); }
+  }
+  if(delId){ if(!confirm("Delete?")) return; const { error } = await sb.from("inventory").delete().eq("id", delId); if(error) toast("Error: "+error.message); else { toast("Deleted"); loadInventory(); } }
+});
+document.getElementById("addInvBtn").addEventListener("click", ()=> openInvForm(null));
+function openInvForm(i){
+  const isEdit = !!i;
+  i = i || { item:"",price:"",photos:"",availability:true,whatsapp:"",sort_order:0 };
+  const html = `
+  <div class="modal-overlay" id="modalOverlay"><div class="modal" style="max-width:480px">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-body" style="padding-top:16px">
+      <h2>${isEdit?"Edit":"Add"} Item</h2>
+      <label>Item name</label><input id="i_item" value="${escapeHtml(i.item)}">
+      <label>Price</label><input id="i_price" value="${escapeHtml(i.price)}">
+      <label>Photos — one URL per line</label><textarea id="i_photos" rows="2">${splitList(i.photos).join("\n")}</textarea>
+      <input type="file" id="i_photoUpload" accept="image/*" multiple style="margin-top:6px">
+      <label>WhatsApp number</label><input id="i_wa" value="${escapeHtml(i.whatsapp)}">
+      <label><input type="checkbox" id="i_avail" ${i.availability?"checked":""}> Available (uncheck = Sold)</label>
+      <label>Sort order</label><input type="number" id="i_sort" value="${i.sort_order||0}">
+      <div class="fixed-bar" style="margin-top:16px;padding:0"><button class="btn block" id="saveInvBtn">Save</button></div>
+    </div></div></div>`;
+  injectModal(html);
+  document.getElementById("i_photoUpload").addEventListener("change", async (e)=>{
+    const files = Array.from(e.target.files||[]);
+    const urls = [];
+    for(const file of files){
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
+      const { error } = await sb.storage.from("photos").upload(path, file);
+      if(!error){ const { data } = sb.storage.from("photos").getPublicUrl(path); urls.push(data.publicUrl); }
+    }
+    const ta = document.getElementById("i_photos");
+    ta.value = [...splitList(ta.value), ...urls].join("\n");
+    toast("Uploaded "+urls.length+" photo(s)");
+  });
+  document.getElementById("saveInvBtn").addEventListener("click", async ()=>{
+    const row = { item:document.getElementById("i_item").value.trim(), price:document.getElementById("i_price").value.trim(),
+      photos: splitList(document.getElementById("i_photos").value).join(","), whatsapp:document.getElementById("i_wa").value.trim(),
+      availability:document.getElementById("i_avail").checked, sort_order: parseInt(document.getElementById("i_sort").value)||0 };
+    let error;
+    if(isEdit){ ({error} = await sb.from("inventory").update(row).eq("id", i.id)); } else { ({error} = await sb.from("inventory").insert([row])); }
+    if(error){ toast("Error: "+error.message); return; }
+    toast("Saved"); closeModal(); loadInventory();
+  });
+}
+
+/* ===================== SERVICES ===================== */
+let SERVICE_CACHE = [];
+async function loadServices(){
+  const { data, error } = await sb.from("services").select("*").order("sort_order");
+  if(error){ toast("Error: "+error.message); return; }
+  SERVICE_CACHE = data || [];
+  document.getElementById("serviceList2").innerHTML = SERVICE_CACHE.map(s=>`
+    <div class="admin-row">
+      <div class="top"><div><div class="title">${s.icon||"🔧"} ${escapeHtml(s.name)}</div><div class="meta">${s.active?"Active":"Hidden"} · order ${s.sort_order||0}</div></div></div>
+      <div class="actions">
+        <button class="primary" data-edit="${s.id}">Edit</button>
+        <button class="gold" data-toggle="${s.id}">${s.active?"Hide":"Show"}</button>
+        <button class="danger" data-del="${s.id}">Delete</button>
+      </div>
+    </div>`).join("") || `<div class="empty-state">No services yet.</div>`;
+}
+document.getElementById("serviceList2").addEventListener("click", async e=>{
+  const editId = e.target.closest("[data-edit]")?.dataset.edit;
+  const toggleId = e.target.closest("[data-toggle]")?.dataset.toggle;
+  const delId = e.target.closest("[data-del]")?.dataset.del;
+  if(editId) openServiceForm(SERVICE_CACHE.find(s=>String(s.id)===editId));
+  if(toggleId){
+    const src = SERVICE_CACHE.find(s=>String(s.id)===toggleId);
+    const { error } = await sb.from("services").update({ active: !src.active }).eq("id", toggleId);
+    if(error) toast("Error: "+error.message); else loadServices();
+  }
+  if(delId){ if(!confirm("Delete?")) return; const { error } = await sb.from("services").delete().eq("id", delId); if(error) toast("Error: "+error.message); else { toast("Deleted"); loadServices(); } }
+});
+document.getElementById("addServiceBtn").addEventListener("click", ()=> openServiceForm(null));
+function openServiceForm(s){
+  const isEdit = !!s;
+  s = s || { name:"",icon:"🔧",whatsapp:"",active:true,sort_order:0 };
+  const html = `
+  <div class="modal-overlay" id="modalOverlay"><div class="modal" style="max-width:460px">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-body" style="padding-top:16px">
+      <h2>${isEdit?"Edit":"Add"} Service</h2>
+      <label>Name</label><input id="s_name" value="${escapeHtml(s.name)}">
+      <label>Emoji icon</label><input id="s_icon" value="${escapeHtml(s.icon)}">
+      <label>WhatsApp (leave blank to use your main number)</label><input id="s_wa" value="${escapeHtml(s.whatsapp)}">
+      <label><input type="checkbox" id="s_active" ${s.active?"checked":""}> Show on site</label>
+      <label>Sort order</label><input type="number" id="s_sort" value="${s.sort_order||0}">
+      <div class="fixed-bar" style="margin-top:16px;padding:0"><button class="btn block" id="saveServiceBtn">Save</button></div>
+    </div></div></div>`;
+  injectModal(html);
+  document.getElementById("saveServiceBtn").addEventListener("click", async ()=>{
+    const row = { name:document.getElementById("s_name").value.trim(), icon:document.getElementById("s_icon").value.trim(),
+      whatsapp:document.getElementById("s_wa").value.trim(), active:document.getElementById("s_active").checked,
+      sort_order: parseInt(document.getElementById("s_sort").value)||0 };
+    let error;
+    if(isEdit){ ({error} = await sb.from("services").update(row).eq("id", s.id)); } else { ({error} = await sb.from("services").insert([row])); }
+    if(error){ toast("Error: "+error.message); return; }
+    toast("Saved"); closeModal(); loadServices();
+  });
+}
+
+/* ===================== INQUIRIES ===================== */
+async function loadInquiries(){
+  const { data, error } = await sb.from("inquiries").select("*").order("created_at",{ascending:false});
+  if(error){ toast("Error: "+error.message); return; }
+  document.getElementById("inquiryList").innerHTML = (data||[]).map(q=>`
+    <div class="admin-row">
+      <div class="top"><div>
+        <div class="title">${escapeHtml(q.name||"(no name)")} — ${escapeHtml(q.role||"general")}</div>
+        <div class="meta">${escapeHtml(q.phone||"")} · ${new Date(q.created_at).toLocaleString()} · ${q.handled?"✅ handled":"🟡 new"}</div>
+        <div class="meta" style="white-space:pre-wrap;margin-top:6px">${escapeHtml(q.message||"")}</div>
+      </div></div>
+      <div class="actions">
+        <button class="primary" data-reply="${q.id}" data-phone="${escapeHtml(q.phone||"")}">💬 Reply on WhatsApp</button>
+        <button class="gold" data-handled="${q.id}">${q.handled?"Mark new":"Mark handled"}</button>
+        <button class="danger" data-del="${q.id}">Delete</button>
+      </div>
+    </div>`).join("") || `<div class="empty-state">No inquiries yet.</div>`;
+}
+document.getElementById("inquiryList").addEventListener("click", async e=>{
+  const replyBtn = e.target.closest("[data-reply]");
+  const handledId = e.target.closest("[data-handled]")?.dataset.handled;
+  const delId = e.target.closest("[data-del]")?.dataset.del;
+  if(replyBtn) window.open(waLink(replyBtn.dataset.phone, "Hi, thanks for reaching out to us!"), "_blank");
+  if(handledId){
+    const { data } = await sb.from("inquiries").select("handled").eq("id", handledId).single();
+    const { error } = await sb.from("inquiries").update({ handled: !data.handled }).eq("id", handledId);
+    if(error) toast("Error: "+error.message); else loadInquiries();
+  }
+  if(delId){ if(!confirm("Delete this inquiry?")) return; const { error } = await sb.from("inquiries").delete().eq("id", delId); if(error) toast("Error: "+error.message); else loadInquiries(); }
+});
+
+/* ===================== SETTINGS ===================== */
+async function loadSettingsAdmin(){
+  const { data } = await sb.from("settings").select("*");
+  const map = {}; (data||[]).forEach(r=> map[r.key]=r.value);
+  document.getElementById("setBizName").value = map.business_name || "One3 Stay";
+  document.getElementById("setDefaultCat").value = map.default_category || "all";
+  document.getElementById("setOwnerWa").value = map.owner_whatsapp || "";
+  document.getElementById("adminBizName").textContent = map.business_name || "One3 Stay";
+}
+document.getElementById("saveSettingsBtn").addEventListener("click", async ()=>{
+  const rows = [
+    { key:"business_name", value:document.getElementById("setBizName").value.trim() },
+    { key:"default_category", value:document.getElementById("setDefaultCat").value },
+    { key:"owner_whatsapp", value:document.getElementById("setOwnerWa").value.trim() },
+  ];
+  const { error } = await sb.from("settings").upsert(rows);
+  if(error){ toast("Error: "+error.message); return; }
+  toast("Settings saved");
+  loadSettingsAdmin();
+});
+
+/* ===================== EXPORT / BACKUP ===================== */
+document.getElementById("exportBtn").addEventListener("click", async ()=>{
+  toast("Preparing backup...");
+  const tables = ["properties","rooms","tiffin","inventory","services","settings","inquiries"];
+  const backup = { exported_at: new Date().toISOString() };
+  for(const t of tables){
+    const { data, error } = await sb.from(t).select("*");
+    backup[t] = error ? { error: error.message } : data;
+  }
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `one3stay-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast("Backup downloaded");
+});
+
+/* ===================== shared modal helpers ===================== */
+function injectModal(html){
+  closeModal();
+  document.body.insertAdjacentHTML("beforeend", html);
+  document.body.style.overflow = "hidden";
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  document.getElementById("modalOverlay").addEventListener("click", (e)=>{ if(e.target.id==="modalOverlay") closeModal(); });
+}
+function closeModal(){
+  const m = document.getElementById("modalOverlay");
+  if(m) m.remove();
+  document.body.style.overflow = "";
+}
+
+/* ---------------- boot ---------------- */
+checkSession();
+</script>
 </body>
 </html>
