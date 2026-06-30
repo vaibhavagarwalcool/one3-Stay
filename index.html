@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Properties & Tiffin Service - Jaipur</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <h1 id="bizName">Loading...</h1>
+  <p>Flats · Homestays · Hourly Stays · Land for Sale · Tiffin Service</p>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-tab="properties" onclick="showTab('properties')">🏠 Properties</button>
+  <button data-tab="tiffin" onclick="showTab('tiffin')">🍱 Tiffin</button>
+  <button data-tab="inventory" onclick="showTab('inventory')">📦 Items for Sale</button>
+  <button data-tab="form" onclick="showTab('form')">📝 List / Inquire</button>
+</nav>
+
+<main>
+
+  <section id="tab-properties">
+    <div class="search-bar">
+      <input id="searchBox" placeholder="Search by title or area..." oninput="filterProperties()">
+      <select id="typeFilter" onchange="filterProperties()">
+        <option value="">All types</option>
+        <option value="flat">Flat</option>
+        <option value="homestay">Homestay</option>
+        <option value="hourly">Hourly Stay</option>
+        <option value="land">Land for Sale</option>
+      </select>
+    </div>
+    <div class="grid" id="propertiesGrid"><div class="empty">Loading properties...</div></div>
+  </section>
+
+  <section id="tab-tiffin" style="display:none">
+    <div class="grid" id="tiffinGrid"><div class="empty">Loading tiffin areas...</div></div>
+  </section>
+
+  <section id="tab-inventory" style="display:none">
+    <div class="grid" id="inventoryGrid"><div class="empty">Loading items...</div></div>
+  </section>
+
+  <section id="tab-form" style="display:none">
+    <form class="panel" id="inquiryForm">
+      <h3>List your property / Ask a question</h3>
+      <label>Your Name</label>
+      <input name="name" required>
+      <label>Your Phone</label>
+      <input name="phone" required>
+      <label>Type</label>
+      <select name="type">
+        <option value="general">General Query</option>
+        <option value="list_property">I want to list my property</option>
+      </select>
+      <label>Message</label>
+      <textarea name="message" placeholder="Tell us briefly what you need..." required></textarea>
+      <button type="submit" class="btn primary">Submit</button>
+      <div id="formMsg" class="muted" style="margin-top:8px"></div>
+    </form>
+  </section>
+
+</main>
+
+<footer>© <span id="year"></span> <span id="bizName2"></span> · Built with GitHub Pages + Supabase</footer>
+
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+document.getElementById("bizName").textContent = BUSINESS_NAME;
+document.getElementById("bizName2").textContent = BUSINESS_NAME;
+document.getElementById("year").textContent = new Date().getFullYear();
+
+let allProperties = [];
+
+function showTab(tab) {
+  ["properties","tiffin","inventory","form"].forEach(t => {
+    document.getElementById("tab-" + t).style.display = (t === tab) ? "block" : "none";
+  });
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+}
+
+function filterProperties() {
+  const q = document.getElementById("searchBox").value.toLowerCase();
+  const type = document.getElementById("typeFilter").value;
+  const filtered = allProperties.filter(p =>
+    (!type || p.type === type) &&
+    (p.title.toLowerCase().includes(q) || p.area.toLowerCase().includes(q))
+  );
+  renderProperties(filtered);
+}
+
+function renderProperties(list) {
+  const grid = document.getElementById("propertiesGrid");
+  if (!list.length) { grid.innerHTML = `<div class="empty">No properties found.</div>`; return; }
+  grid.innerHTML = list.map(renderPropertyCard).join("");
+}
+
+async function loadProperties() {
+  const { data, error } = await supabaseClient.from("properties").select("*").order("created_at", { ascending: false });
+  if (error) { document.getElementById("propertiesGrid").innerHTML = `<div class="empty">Could not load data. Check assets/config.js has your Supabase keys.</div>`; return; }
+  allProperties = data || [];
+  allProperties.forEach(cacheProperty);
+  renderProperties(allProperties);
+}
+
+async function loadTiffin() {
+  const { data, error } = await supabaseClient.from("tiffin").select("*").order("created_at", { ascending: false });
+  const grid = document.getElementById("tiffinGrid");
+  if (error || !data || !data.length) { grid.innerHTML = `<div class="empty">No tiffin areas added yet.</div>`; return; }
+  grid.innerHTML = data.map(renderTiffinCard).join("");
+}
+
+async function loadInventory() {
+  const { data, error } = await supabaseClient.from("inventory").select("*").order("created_at", { ascending: false });
+  const grid = document.getElementById("inventoryGrid");
+  if (error || !data || !data.length) { grid.innerHTML = `<div class="empty">No items listed yet.</div>`; return; }
+  grid.innerHTML = data.map(renderInventoryCard).join("");
+}
+
+document.getElementById("inquiryForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const payload = {
+    name: f.name.value, phone: f.phone.value, type: f.type.value, message: f.message.value
+  };
+  const { error } = await supabaseClient.from("inquiries").insert(payload);
+  document.getElementById("formMsg").textContent = error ? "Something went wrong. Please try again." : "✅ Submitted! We'll get back to you soon.";
+  if (!error) f.reset();
+});
+
+loadProperties();
+loadTiffin();
+loadInventory();
+</script>
+</body>
+</html>

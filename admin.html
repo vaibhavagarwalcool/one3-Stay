@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Manage Listings</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>🔧 Admin Panel</h1>
+  <p id="bizNameAdmin"></p>
+</header>
+
+<div id="loginScreen" class="login-box">
+  <h3>Admin Login</h3>
+  <form id="loginForm">
+    <label>Email</label>
+    <input name="email" type="email" required style="width:100%;padding:9px;margin:6px 0 12px;border-radius:8px;border:1px solid #ddd">
+    <label>Password</label>
+    <input name="password" type="password" required style="width:100%;padding:9px;margin:6px 0 12px;border-radius:8px;border:1px solid #ddd">
+    <button class="btn primary" type="submit" style="width:100%">Login</button>
+    <div id="loginMsg" class="muted" style="margin-top:8px"></div>
+  </form>
+  <p class="muted" style="margin-top:14px">First time? Create your admin login in Supabase Dashboard → Authentication → Users → Add User. See README.md Step 3.</p>
+</div>
+
+<div id="adminPanel" style="display:none">
+  <nav class="tabs">
+    <button class="active" onclick="showAdminTab('properties')">🏠 Properties</button>
+    <button onclick="showAdminTab('rooms')">🚪 Rooms</button>
+    <button onclick="showAdminTab('tiffin')">🍱 Tiffin</button>
+    <button onclick="showAdminTab('inventory')">📦 Inventory</button>
+    <button onclick="showAdminTab('inquiries')">📥 Inquiries</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </nav>
+  <main>
+    <div id="admin-properties"></div>
+    <div id="admin-rooms" style="display:none"></div>
+    <div id="admin-tiffin" style="display:none"></div>
+    <div id="admin-inventory" style="display:none"></div>
+    <div id="admin-inquiries" style="display:none"></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/admin.js"></script>
+</body>
+</html>
