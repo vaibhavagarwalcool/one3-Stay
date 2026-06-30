@@ -87,9 +87,11 @@ async function loadProperties() {
     <div class="admin-list-item">
       <div><strong>${escapeHtml(p.title)}</strong><br><span class="muted">${escapeHtml(p.area)} · ${escapeHtml(p.type)} · ${p.availability ? "Available" : "Unavailable"}</span></div>
       <div class="actions">
-        <button class="small-btn" onclick='openPropertyForm(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Edit</button>
-        <button class="small-btn" onclick="deleteRecord('properties', ${p.id}, loadProperties)">Delete</button>
-      </div>
+       <button class="small-btn" onclick='openPropertyForm(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Edit</button>
+       <button class="small-btn" onclick="duplicateProperty(${p.id})">Duplicate</button>
+       <button class="small-btn" onclick="deleteRecord('properties', ${p.id}, loadProperties)">Delete</button>
+     </div>
+
     </div>`).join("");
   html += `</div>`;
   el.innerHTML = html;
@@ -107,6 +109,9 @@ function openPropertyForm(existing) {
       <select name="type">
         ${["flat","homestay","hourly","land"].map(t => `<option value="${t}" ${e.type===t?"selected":""}>${t}</option>`).join("")}
       </select>
+      <label><input type="checkbox" name="pinned" ${e.pinned?"checked":""}> ⭐ Pin to Top of page</label>
+      <label>Long Description</label>
+      <textarea name="description" placeholder="Type extensive details here...">${escapeHtml(e.description||"")}</textarea>
       <label>Price</label><input name="price" value="${escapeHtml(e.price||"")}">
       <label><input type="checkbox" name="availability" ${e.availability!==false?"checked":""}> Available</label>
       <label><input type="checkbox" name="has_rooms" ${e.has_rooms?"checked":""}> This property has multiple rooms (manage in Rooms tab)</label>
@@ -143,6 +148,8 @@ function openPropertyForm(existing) {
       availability: f.availability.checked, has_rooms: f.has_rooms.checked,
       photos: allPhotos, videos: f.videos.value.trim(),
       map_link: f.map_link.value.trim(), phone: f.phone.value.trim(), whatsapp: f.whatsapp.value.trim(),
+      pinned: f.pinned.checked,
+      description: f.description.value.trim(),
       custom_details: collectCustomDetails("propCustomDetails")
     };
     let res;
@@ -186,6 +193,17 @@ async function loadRooms() {
     </div>`).join("");
   html += `</div>`;
   wrap.innerHTML = html;
+}
+
+async function duplicateProperty(id) {
+  const { data } = await supabaseClient.from("properties").select("*").eq("id", id).single();
+  if (data) {
+    const { id: oldId, created_at, ...copy } = data; // Remove old ID and timestamp
+    copy.title = copy.title + " (Copy)";
+    copy.pinned = false; // Don't auto-pin copies
+    await supabaseClient.from("properties").insert(copy);
+    loadProperties();
+  }
 }
 
 function openRoomForm(propertyId, existing) {
