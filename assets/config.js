@@ -4,7 +4,7 @@
 // allows what your RLS policies in schema-v2.sql permit.
 // ==========================================================
 const SUPABASE_URL = "https://lqxepeolwteqnmdusqcs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxeGVwZW9sd3RlcW5tZHVzcWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MzYzOTUsImV4cCI6MjA5ODQxMjM5NX0.tUMPjJdIJo4M5PTm_zjDGOhcNETwUv8D09VasT463MAxMjM5NX0.tUMPjJdIJo4M5PTm_zjDGOhcNETwUv8D09VasT463MA";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxeGVwZW9sd3RlcW5tZHVzcWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MzYzOTUsImV4cCI6MjA5ODQxMjM5NX0.tUMPjJdIJo4M5PTm_zjDGOhcNETwUv8D09VasT463MA";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
