@@ -4,23 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Properties, Tiffin & Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <header class="site-header">
-  <h1 id="bizName">Loading...</h1>
-  <p id="bizTagline"></p>
-  <div class="hero-search">
-    <input id="searchBox" placeholder="Search by title, area, or keyword..." oninput="filterProperties()">
-    <select id="typeFilter" onchange="filterProperties()">
-      <option value="">All types</option>
-      <option value="flat">Flat</option>
-      <option value="homestay">Homestay</option>
-      <option value="hourly">Hourly Stay</option>
-      <option value="land">Land for Sale</option>
-    </select>
+  <div class="header-bg-overlay"></div>
+  <div class="header-content">
+    <div class="brand-title">
+      <h1 id="bizName">Loading...</h1>
+      <span class="premium-badge">Premium</span>
+    </div>
+    <p id="bizTagline"></p>
+    
+    <div class="hero-search">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="searchBox" placeholder="Search by area, title, or keyword..." oninput="filterProperties()">
+      </div>
+      <select id="typeFilter" onchange="filterProperties()">
+        <option value="">All categories</option>
+        <option value="flat">Flat</option>
+        <option value="homestay">Homestay</option>
+        <option value="hourly">Hourly Stay</option>
+        <option value="land">Land for Sale</option>
+      </select>
+    </div>
   </div>
 </header>
 
@@ -35,9 +48,9 @@
 </nav>
 
 <main>
-
   <section id="tab-properties" style="display:none">
     <div class="search-bar">
+      <div class="results-count" id="resultsCount"></div>
       <select id="sortFilter" onchange="filterProperties()">
         <option value="pinned">Featured first</option>
         <option value="new">Newest first</option>
@@ -45,8 +58,9 @@
         <option value="high">Price: High to Low</option>
       </select>
     </div>
-    <div class="results-count" id="resultsCount"></div>
-    <div class="grid" id="propertiesGrid"><div class="empty">Loading properties...</div></div>
+    <div class="grid" id="propertiesGrid"><div class="empty">
+      <div class="spinner"></div>Loading properties...
+    </div></div>
   </section>
 
   <section id="tab-tiffin" style="display:none">
@@ -58,34 +72,42 @@
   </section>
 
   <section id="tab-services" style="display:none">
-    <p class="muted" style="margin-bottom:14px">Extra services we provide — tap to inquire on WhatsApp.</p>
+    <div class="section-intro">
+      <h2>Premium Services</h2>
+      <p class="muted">Extra services we provide — tap to inquire on WhatsApp.</p>
+    </div>
     <div class="grid" id="servicesGrid"><div class="empty">Loading services...</div></div>
   </section>
 
   <section id="tab-form" style="display:none">
     <form class="panel" id="inquiryForm">
-      <h3>List your property / Ask a question</h3>
+      <h3>Get in touch</h3>
+      <p class="muted" style="margin-bottom: 20px;">List your property or ask us a question directly.</p>
       <label>Your Name</label>
-      <input name="name" required>
+      <input name="name" required placeholder="John Doe">
       <label>Your Phone</label>
-      <input name="phone" required>
-      <label>Type</label>
+      <input name="phone" required placeholder="+91 99999 00000">
+      <label>Type of Inquiry</label>
       <select name="type">
         <option value="general">General Query</option>
         <option value="list_property">I want to list my property</option>
       </select>
       <label>Message</label>
       <textarea name="message" placeholder="Tell us briefly what you need..." required></textarea>
-      <button type="submit" class="btn primary">Submit</button>
-      <div id="formMsg" class="muted" style="margin-top:8px"></div>
+      <button type="submit" class="btn primary full-width">Submit Inquiry</button>
+      <div id="formMsg" class="muted" style="margin-top:12px; text-align: center;"></div>
     </form>
   </section>
-
 </main>
 
 <footer>
-  Need something else? Tap 💬 above to WhatsApp us directly.<br>
-  © <span id="year"></span> <span id="bizName2"></span> · Built with GitHub Pages + Supabase
+  <div class="footer-content">
+    <h3>Need something else?</h3>
+    <p>Tap 💬 above to WhatsApp us directly.</p>
+    <div class="copyright">
+      © <span id="year"></span> <span id="bizName2"></span> · Premium Platform
+    </div>
+  </div>
 </footer>
 
 <script src="assets/config.js"></script>
@@ -106,7 +128,6 @@ async function loadSettings() {
   document.title = bizName;
   const defaultTab = siteSettings.default_tab || FALLBACK_DEFAULT_TAB;
   const params = new URLSearchParams(location.search);
-  // if a deep link is present, still show the properties tab behind the modal
   showTab(["properties","tiffin","inventory","services","form"].includes(defaultTab) ? defaultTab : "properties");
 }
 
@@ -145,19 +166,19 @@ function filterProperties() {
   else if (sort === "low") filtered.sort((a, b) => priceNumber(a.price) - priceNumber(b.price));
   else if (sort === "high") filtered.sort((a, b) => priceNumber(b.price) - priceNumber(a.price));
 
-  document.getElementById("resultsCount").textContent = `${filtered.length} listing${filtered.length === 1 ? "" : "s"} found`;
+  document.getElementById("resultsCount").innerHTML = `<strong>${filtered.length}</strong> listing${filtered.length === 1 ? "" : "s"} found`;
   renderProperties(filtered);
 }
 
 function renderProperties(list) {
   const grid = document.getElementById("propertiesGrid");
-  if (!list.length) { grid.innerHTML = `<div class="empty">No properties found. Try a different search.</div>`; return; }
+  if (!list.length) { grid.innerHTML = `<div class="empty"><h2>No properties found</h2><p>Try adjusting your search criteria.</p></div>`; return; }
   grid.innerHTML = list.map(renderPropertyCard).join("");
 }
 
 async function loadProperties() {
   const { data, error } = await supabaseClient.from("properties").select("*").order("pinned", { ascending: false }).order("sort_order").order("created_at", { ascending: false });
-  if (error) { document.getElementById("propertiesGrid").innerHTML = `<div class="empty">Could not load data. Check assets/config.js has your Supabase keys.</div>`; return; }
+  if (error) { document.getElementById("propertiesGrid").innerHTML = `<div class="empty">Could not load data. Check assets/config.js.</div>`; return; }
   allProperties = data || [];
   allProperties.forEach(cacheProperty);
   filterProperties();
@@ -189,7 +210,7 @@ async function loadQuickContacts() {
   const wrap = document.getElementById("quickContacts");
   if (!data || !data.length) { wrap.style.display = "none"; return; }
   wrap.innerHTML = data.map(c =>
-    `<a class="qc-btn" target="_blank" href="${waLink(c.whatsapp, c.message || `Hi, I am a ${c.role}.`)}">${c.icon || "💬"} ${escapeHtml(c.role)} — chat with us</a>`
+    `<a class="qc-btn" target="_blank" href="${waLink(c.whatsapp, c.message || `Hi, I am a ${c.role}.`)}">${c.icon || "💬"} ${escapeHtml(c.role)}</a>`
   ).join("");
 }
 
@@ -198,7 +219,7 @@ document.getElementById("inquiryForm").addEventListener("submit", async (e) => {
   const f = e.target;
   const payload = { name: f.name.value, phone: f.phone.value, type: f.type.value, message: f.message.value };
   const { error } = await supabaseClient.from("inquiries").insert(payload);
-  document.getElementById("formMsg").textContent = error ? "Something went wrong. Please try again." : "✅ Submitted! We'll get back to you soon.";
+  document.getElementById("formMsg").innerHTML = error ? "<span style='color:#e11d48'>Something went wrong. Please try again.</span>" : "<span style='color:#10b981'>✅ Submitted! We'll get back to you soon.</span>";
   if (!error) f.reset();
 });
 
