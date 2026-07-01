@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Properties & Services - Jaipur</title>
+<title>Properties, Tiffin & Services</title>
 <link rel="stylesheet" href="assets/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -11,77 +11,206 @@
 
 <header class="site-header">
   <h1 id="bizName">Loading...</h1>
-  <p>Your Trusted Real Estate & Service Partner</p>
+  <p id="bizTagline"></p>
+  <div class="hero-search">
+    <input id="searchBox" placeholder="Search by title, area, or keyword..." oninput="filterProperties()">
+    <select id="typeFilter" onchange="filterProperties()">
+      <option value="">All types</option>
+      <option value="flat">Flat</option>
+      <option value="homestay">Homestay</option>
+      <option value="hourly">Hourly Stay</option>
+      <option value="land">Land for Sale</option>
+    </select>
+  </div>
 </header>
 
-<div class="partner-banner">
-  <strong>Partner with us!</strong> Chat if you are a: 
-  <a href="#" onclick="waPartner('Broker')">Broker</a> • 
-  <a href="#" onclick="waPartner('Tenant')">Tenant</a> • 
-  <a href="#" onclick="waPartner('Supplier')">Supplier</a> • 
-  <a href="#" onclick="waPartner('Interior Designer')">Interior</a> • 
-  <a href="#" onclick="waPartner('Lawyer')">Lawyer</a>
-</div>
+<div class="quick-contacts" id="quickContacts"></div>
 
 <nav class="tabs">
-  <button class="active" data-tab="properties" onclick="showTab('properties')">🏠 Properties</button>
+  <button data-tab="properties" onclick="showTab('properties')">🏠 Properties</button>
   <button data-tab="tiffin" onclick="showTab('tiffin')">🍱 Tiffin</button>
-  <button data-tab="inventory" onclick="showTab('inventory')">📦 Shop</button>
+  <button data-tab="inventory" onclick="showTab('inventory')">📦 Items for Sale</button>
   <button data-tab="services" onclick="showTab('services')">🛠️ Services</button>
-  <button data-tab="form" onclick="showTab('form')">📝 Inquire</button>
+  <button data-tab="form" onclick="showTab('form')">📝 List / Inquire</button>
 </nav>
 
 <main>
-  <section id="tab-properties">
+
+  <section id="tab-properties" style="display:none">
     <div class="search-bar">
-      <input id="searchBox" placeholder="Search areas, keywords..." oninput="filterProperties()">
-      <select id="typeFilter" onchange="filterProperties()">
-        <option value="">All Categories</option>
-        <option value="flat">Flats</option>
-        <option value="homestay">Homestays</option>
-        <option value="hourly">Hourly Stays</option>
-        <option value="land">Land</option>
+      <select id="sortFilter" onchange="filterProperties()">
+        <option value="pinned">Featured first</option>
+        <option value="new">Newest first</option>
+        <option value="low">Price: Low to High</option>
+        <option value="high">Price: High to Low</option>
       </select>
     </div>
-    <div class="grid" id="propertiesGrid"><div class="empty">Loading...</div></div>
+    <div class="results-count" id="resultsCount"></div>
+    <div class="grid" id="propertiesGrid"><div class="empty">Loading properties...</div></div>
   </section>
 
   <section id="tab-tiffin" style="display:none">
-    <div class="grid" id="tiffinGrid"><div class="empty">Loading...</div></div>
+    <div class="grid" id="tiffinGrid"><div class="empty">Loading tiffin areas...</div></div>
   </section>
 
   <section id="tab-inventory" style="display:none">
-    <div class="grid" id="inventoryGrid"><div class="empty">Loading...</div></div>
+    <div class="grid" id="inventoryGrid"><div class="empty">Loading items...</div></div>
   </section>
 
   <section id="tab-services" style="display:none">
-    <h3 style="margin-top:0">Additional Services We Provide</h3>
-    <div class="services-grid" id="servicesGrid"></div>
+    <p class="muted" style="margin-bottom:14px">Extra services we provide — tap to inquire on WhatsApp.</p>
+    <div class="grid" id="servicesGrid"><div class="empty">Loading services...</div></div>
   </section>
 
   <section id="tab-form" style="display:none">
     <form class="panel" id="inquiryForm">
-      <h3>Submit a Query</h3>
-      <label>Name</label><input name="name" required>
-      <label>Phone</label><input name="phone" required>
+      <h3>List your property / Ask a question</h3>
+      <label>Your Name</label>
+      <input name="name" required>
+      <label>Your Phone</label>
+      <input name="phone" required>
       <label>Type</label>
       <select name="type">
         <option value="general">General Query</option>
-        <option value="list_property">List my property</option>
+        <option value="list_property">I want to list my property</option>
       </select>
       <label>Message</label>
-      <textarea name="message" required></textarea>
+      <textarea name="message" placeholder="Tell us briefly what you need..." required></textarea>
       <button type="submit" class="btn primary">Submit</button>
-      <div id="formMsg" class="muted"></div>
+      <div id="formMsg" class="muted" style="margin-top:8px"></div>
     </form>
   </section>
+
 </main>
 
-<div id="detailModal" class="modal-overlay" onclick="closeModal(event)">
-  <div class="modal-content" id="modalBody"></div>
-</div>
+<footer>
+  Need something else? Tap 💬 above to WhatsApp us directly.<br>
+  © <span id="year"></span> <span id="bizName2"></span> · Built with GitHub Pages + Supabase
+</footer>
 
 <script src="assets/config.js"></script>
 <script src="assets/app.js"></script>
+<script>
+let allProperties = [];
+let siteSettings = {};
+
+async function loadSettings() {
+  const { data } = await supabaseClient.from("settings").select("*");
+  siteSettings = {};
+  (data || []).forEach(row => siteSettings[row.key] = row.value);
+  const bizName = siteSettings.business_name || FALLBACK_BUSINESS_NAME;
+  const tagline = siteSettings.tagline || FALLBACK_TAGLINE;
+  document.getElementById("bizName").textContent = bizName;
+  document.getElementById("bizTagline").textContent = tagline;
+  document.getElementById("bizName2").textContent = bizName;
+  document.title = bizName;
+  const defaultTab = siteSettings.default_tab || FALLBACK_DEFAULT_TAB;
+  const params = new URLSearchParams(location.search);
+  // if a deep link is present, still show the properties tab behind the modal
+  showTab(["properties","tiffin","inventory","services","form"].includes(defaultTab) ? defaultTab : "properties");
+}
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+function showTab(tab) {
+  ["properties","tiffin","inventory","services","form"].forEach(t => {
+    document.getElementById("tab-" + t).style.display = (t === tab) ? "block" : "none";
+  });
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+}
+
+function priceNumber(priceStr) {
+  if (!priceStr) return Infinity;
+  const m = String(priceStr).replace(/,/g, "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : Infinity;
+}
+
+function filterProperties() {
+  const q = document.getElementById("searchBox").value.toLowerCase();
+  const type = document.getElementById("typeFilter").value;
+  const sort = document.getElementById("sortFilter") ? document.getElementById("sortFilter").value : "pinned";
+
+  let filtered = allProperties.filter(p => {
+    if (type && p.type !== type) return false;
+    if (!q) return true;
+    const haystack = [
+      p.title, p.area, p.type, p.price,
+      ...(p.custom_details || []).map(d => `${d.key} ${d.value}`)
+    ].join(" ").toLowerCase();
+    return haystack.includes(q);
+  });
+
+  if (sort === "pinned") filtered.sort((a, b) => (b.pinned - a.pinned) || (a.sort_order - b.sort_order) || new Date(b.created_at) - new Date(a.created_at));
+  else if (sort === "new") filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  else if (sort === "low") filtered.sort((a, b) => priceNumber(a.price) - priceNumber(b.price));
+  else if (sort === "high") filtered.sort((a, b) => priceNumber(b.price) - priceNumber(a.price));
+
+  document.getElementById("resultsCount").textContent = `${filtered.length} listing${filtered.length === 1 ? "" : "s"} found`;
+  renderProperties(filtered);
+}
+
+function renderProperties(list) {
+  const grid = document.getElementById("propertiesGrid");
+  if (!list.length) { grid.innerHTML = `<div class="empty">No properties found. Try a different search.</div>`; return; }
+  grid.innerHTML = list.map(renderPropertyCard).join("");
+}
+
+async function loadProperties() {
+  const { data, error } = await supabaseClient.from("properties").select("*").order("pinned", { ascending: false }).order("sort_order").order("created_at", { ascending: false });
+  if (error) { document.getElementById("propertiesGrid").innerHTML = `<div class="empty">Could not load data. Check assets/config.js has your Supabase keys.</div>`; return; }
+  allProperties = data || [];
+  allProperties.forEach(cacheProperty);
+  filterProperties();
+}
+
+async function loadTiffin() {
+  const { data, error } = await supabaseClient.from("tiffin").select("*").order("pinned", { ascending: false }).order("sort_order");
+  const grid = document.getElementById("tiffinGrid");
+  if (error || !data || !data.length) { grid.innerHTML = `<div class="empty">No tiffin areas added yet.</div>`; return; }
+  grid.innerHTML = data.map(renderTiffinCard).join("");
+}
+
+async function loadInventory() {
+  const { data, error } = await supabaseClient.from("inventory").select("*").order("pinned", { ascending: false }).order("sort_order");
+  const grid = document.getElementById("inventoryGrid");
+  if (error || !data || !data.length) { grid.innerHTML = `<div class="empty">No items listed yet.</div>`; return; }
+  grid.innerHTML = data.map(renderInventoryCard).join("");
+}
+
+async function loadServices() {
+  const { data, error } = await supabaseClient.from("services").select("*").order("pinned", { ascending: false }).order("sort_order");
+  const grid = document.getElementById("servicesGrid");
+  if (error || !data || !data.length) { grid.innerHTML = `<div class="empty">No services listed yet.</div>`; return; }
+  grid.innerHTML = data.map(renderServiceCard).join("");
+}
+
+async function loadQuickContacts() {
+  const { data } = await supabaseClient.from("quick_contacts").select("*").order("sort_order");
+  const wrap = document.getElementById("quickContacts");
+  if (!data || !data.length) { wrap.style.display = "none"; return; }
+  wrap.innerHTML = data.map(c =>
+    `<a class="qc-btn" target="_blank" href="${waLink(c.whatsapp, c.message || `Hi, I am a ${c.role}.`)}">${c.icon || "💬"} ${escapeHtml(c.role)} — chat with us</a>`
+  ).join("");
+}
+
+document.getElementById("inquiryForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const payload = { name: f.name.value, phone: f.phone.value, type: f.type.value, message: f.message.value };
+  const { error } = await supabaseClient.from("inquiries").insert(payload);
+  document.getElementById("formMsg").textContent = error ? "Something went wrong. Please try again." : "✅ Submitted! We'll get back to you soon.";
+  if (!error) f.reset();
+});
+
+(async function init() {
+  await loadSettings();
+  await loadProperties();
+  loadTiffin();
+  loadInventory();
+  loadServices();
+  loadQuickContacts();
+  handleDeepLink();
+})();
+</script>
 </body>
 </html>

@@ -9,8 +9,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <h1> Admin Panel</h1>
+<header class="site-header" style="padding:16px">
+  <h1>🔧 Admin Panel</h1>
   <p id="bizNameAdmin"></p>
 </header>
 
@@ -18,28 +18,41 @@
   <h3>Admin Login</h3>
   <form id="loginForm">
     <label>Email</label>
-    <input name="email" type="email" required>
+    <input name="email" type="email" required style="width:100%;padding:10px;margin:6px 0 12px;border-radius:10px;border:1px solid #ddd">
     <label>Password</label>
-    <input name="password" type="password" required>
+    <input name="password" type="password" required style="width:100%;padding:10px;margin:6px 0 12px;border-radius:10px;border:1px solid #ddd">
     <button class="btn primary" type="submit" style="width:100%">Login</button>
     <div id="loginMsg" class="muted" style="margin-top:8px"></div>
   </form>
+  <p class="muted" style="margin-top:14px">First time? Create your admin login in Supabase Dashboard → Authentication → Users → Add User.</p>
 </div>
 
 <div id="adminPanel" style="display:none">
+  <div class="admin-topbar">
+    <div class="muted" id="loggedInAs"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="small-btn" onclick="exportBackup()">⬇️ Export Full Backup (JSON)</button>
+      <button class="small-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+  </div>
   <nav class="tabs">
-    <button class="active" onclick="showAdminTab('properties')"> Properties</button>
-    <button onclick="showAdminTab('rooms')"> Rooms</button>
-    <button onclick="showAdminTab('tiffin')"> Tiffin</button>
-    <button onclick="showAdminTab('inventory')"> Inventory</button>
-    <button onclick="showAdminTab('inquiries')"> Inquiries</button>
-    <button onclick="logout()"> Logout</button>
+    <button class="active" onclick="showAdminTab('properties')">🏠 Properties</button>
+    <button onclick="showAdminTab('rooms')">🚪 Rooms</button>
+    <button onclick="showAdminTab('tiffin')">🍱 Tiffin</button>
+    <button onclick="showAdminTab('inventory')">📦 Inventory</button>
+    <button onclick="showAdminTab('services')">🛠️ Services</button>
+    <button onclick="showAdminTab('quick')">💬 Quick Contacts</button>
+    <button onclick="showAdminTab('settings')">⚙️ Settings</button>
+    <button onclick="showAdminTab('inquiries')">📥 Inquiries</button>
   </nav>
   <main>
     <div id="admin-properties"></div>
     <div id="admin-rooms" style="display:none"></div>
     <div id="admin-tiffin" style="display:none"></div>
     <div id="admin-inventory" style="display:none"></div>
+    <div id="admin-services" style="display:none"></div>
+    <div id="admin-quick" style="display:none"></div>
+    <div id="admin-settings" style="display:none"></div>
     <div id="admin-inquiries" style="display:none"></div>
   </main>
 </div>

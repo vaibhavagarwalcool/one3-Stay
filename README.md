@@ -1,121 +1,199 @@
-# Your Property + Tiffin + Inventory Website — Setup Guide
+# One3 Stay — v2 Setup & Upgrade Guide
 
-Everything here is **100% free**: GitHub Pages (hosting) + Supabase (database, auth, photo storage).
-Total cost: ₹0/month for your scale (16-30 listings + photos).
-
----
-
-## WHAT YOU GOT
-
-- `index.html` — public site (Properties / Tiffin / Inventory / List-Your-Property form)
-- `admin.html` — password-protected admin panel to add/edit/delete everything, no coding needed
-- `assets/` — styling + logic files
-- `schema.sql` — creates your database tables (run once)
-- `seed.sql` — sample Jaipur data so the site isn't empty on day one (delete later from Admin)
+This is a full rebuild of your site with everything you asked for. Still **100% free**
+(GitHub Pages + Supabase), still no domain needed.
 
 ---
 
-## STEP 1 — Create your free Supabase project (the database)
+## 0. WHAT CHANGED / WHAT'S NEW
 
-1. Go to https://supabase.com → Sign up (free) → "New Project"
-2. Pick any project name + a strong database password (save it somewhere) → choose the region closest to India (Singapore) → Create.
-3. Wait ~2 minutes for it to finish setting up.
-
-## STEP 2 — Create the tables
-
-1. In your Supabase project, open **SQL Editor** (left sidebar) → **New query**.
-2. Open `schema.sql` from this folder, copy all of it, paste into the SQL editor, click **Run**.
-3. Repeat: open `seed.sql`, paste, **Run** — this loads the sample Jaipur listings.
-
-## STEP 3 — Create your admin login
-
-1. In Supabase, go to **Authentication → Users → Add User**.
-2. Enter your email + a password you'll remember. Click **Create User**. Tick "Auto Confirm User" if asked.
-3. This email+password is what you'll use to log into `admin.html`. (You can add more admin users the same way if you have staff.)
-
-## STEP 4 — Create the public photo storage bucket (if not auto-created)
-
-The `schema.sql` script already tries to create a bucket called **photos**. To confirm:
-1. Go to **Storage** in Supabase → you should see a bucket named `photos` marked **Public**.
-2. If it's missing: click **New bucket** → name it exactly `photos` → toggle **Public bucket** ON → Create.
-
-## STEP 5 — Connect your site to Supabase
-
-1. In Supabase, go to **Project Settings → API**.
-2. Copy the **Project URL** and the **anon public** key.
-3. Open `assets/config.js` in this folder and paste them in:
-   ```js
-   const SUPABASE_URL = "https://xxxxx.supabase.co";
-   const SUPABASE_ANON_KEY = "eyJhbGciOi.....";
-   ```
-4. Also change `BUSINESS_NAME` in the same file to your real business name.
-
-> These two values are safe to put in public code — Supabase's security rules (already set up by schema.sql) control what the public key is allowed to do (read listings, submit inquiries) vs what only your logged-in admin account can do (add/edit/delete).
-
-## STEP 6 — Put it on GitHub Pages (free hosting, free link)
-
-1. Go to https://github.com → sign up free if you don't have an account.
-2. Click **+ → New repository**. Name it e.g. `my-properties`. Keep it **Public**. Create.
-3. On the new repo page, click **uploading an existing file** (or "Add file → Upload files").
-4. Drag in ALL the files/folders from this package (`index.html`, `admin.html`, `assets/` folder, `schema.sql`, `seed.sql`, `README.md`) → Commit.
-5. Go to **Settings → Pages** (left sidebar of the repo).
-6. Under "Build and deployment" → Source: **Deploy from a branch**. Branch: `main`, folder `/ (root)`. Save.
-7. Wait 1-2 minutes. Your link will appear at the top, like:
-   `https://yourusername.github.io/my-properties/`
-8. Your **admin panel** will be at:
-   `https://yourusername.github.io/my-properties/admin.html`
-
-That's it — share the first link with tenants/brokers, and bookmark the second one for yourself only.
-
-> Want a shorter link to share on WhatsApp? Free options: tinyurl.com, is.gd, or bitly.com — paste your GitHub Pages link in and get a short one.
+- **Shareable listings** — every property, room, tiffin area, inventory item, and service
+  has a 🔗 **Share** button. It opens the phone's native share sheet (or copies a direct
+  link) that opens straight to that one listing, for anyone, even people who've never
+  visited your site.
+- **Tap a card → full detail view** in a clean pop-up sheet, with all photos, full text,
+  and every custom detail — no more cut-off long descriptions.
+- **Fixed long-text display** — any custom detail longer than ~50 characters (like a full
+  paragraph description) now renders as its own readable block instead of a squashed row.
+- **Rooms are now a proper button** ("🚪 View Rooms in this Building") that opens a full
+  grid of room cards (photo, rent, availability, call/WhatsApp/share) — not a tiny text link.
+- **Pinning + sort order** — mark any listing "Pinned" to always show it first, with a
+  ⭐ Featured ribbon, and fine-tune order with a Sort Order number.
+- **Set main photo** — in Admin, every photo has a ★ button to make it the cover photo.
+- **Duplicate button** — clone any listing to quickly create a similar one.
+- **Search everything** — search box now matches title, area, type, AND any custom detail
+  text/key, not just title/area.
+- **Sort dropdown** — Featured first / Newest / Price low-high / Price high-low.
+- **Call + WhatsApp + Share on every category** — properties, rooms, tiffin, inventory,
+  and the new services section all have consistent action buttons.
+- **Quick Contacts strip** — "Broker / Tenant / Supplier / Interior Partner / Lawyer
+  Partner — chat with us" buttons right under the search bar, each opening WhatsApp with
+  a role-specific prefilled message. Fully editable (add more roles) from Admin.
+- **New "Services" tab** — rental & legal drafting, trademark registration, website
+  building, packers & movers, RO/AC service, electrician, cleaning, lift service, tile
+  installation, interior consultation, end-to-end PG/rental maintenance, gemstones, bulk
+  anaj & spices, bulk building material — all pre-loaded, editable, with WhatsApp inquire.
+- **Default tab** — choose which tab (Properties/Tiffin/Items/Services/Form) opens first,
+  from Admin → Settings.
+- **Full backup/export** — one button in Admin downloads a JSON file of every table, so
+  you never lose your filled-in data even if you redesign the site later.
+- **Nicer UI** — gradient header, featured ribbons, availability chips, "posted X ago",
+  card hover effects, bottom-sheet modals — closer to OLX/99acres/MagicBricks style.
 
 ---
 
-## HOW TO ADD YOUR REAL PHOTOS & VIDEOS
+## 1. FIX YOUR DATABASE (the SQL you ran wrong)
 
-**Photos — 2 options:**
-- **Easiest:** In `admin.html`, when adding/editing a property, room, or item, use the "Or upload photos directly" file picker — select multiple photos from your phone/computer, they upload straight to your free Supabase storage and attach automatically. (Free tier = 1GB, roughly 1,000-2,000 phone photos — plenty for 16-30 listings.)
-- **Alternative:** Upload photos anywhere that gives a public link (Google Photos "share" link, imgbb.com, Google Drive set to "Anyone with link") and paste the links into the "Photos (comma-separated URLs)" box instead.
+You currently have a working database with some real listings in it, so we won't nuke
+everything blindly — we'll rebuild the structure cleanly and put your real listings back.
 
-**Videos — use YouTube (free, unlimited, no storage limits):**
-1. Upload your property walkthrough video to YouTube.
-2. Set visibility to **Unlisted** (not searchable, but anyone with the link can view).
-3. Copy the video link (e.g. `https://youtu.be/xxxxxxx`) and paste it into the "Videos" field in Admin.
-4. You can also use a Google Drive link (set sharing to "Anyone with the link can view") if you prefer not to use YouTube.
+1. Supabase → **SQL Editor** → New query.
+2. Open **`schema-v2.sql`** from this package → copy all → paste → **Run**.
+   This drops the old/broken tables and creates the new clean ones (with pinning, sort
+   order, services, quick contacts, settings, etc.) — including sample "Services" and
+   "Quick Contacts" rows you can edit.
+3. New query → open **`migrate-real-data.sql`** → copy all → paste → **Run**.
+   This restores your real listings (Raja Park flat, Sanganer 24-room building + its
+   3 rooms, Vaishali Nagar land plot, tiffin areas, inventory items) into the new schema,
+   with the correct pinned/sort order already set.
+4. Double-check in **Table Editor** that `properties`, `rooms`, `tiffin`, `inventory`,
+   `services`, `quick_contacts`, `settings`, `inquiries` all exist and have rows.
 
----
-
-## HOW TO USE THE ADMIN PANEL DAY-TO-DAY
-
-1. Go to your `admin.html` link → log in with the email/password from Step 3.
-2. **Properties tab** — Add New Property for each flat/homestay/hourly-stay/land. Tick "This property has multiple rooms" only for buildings like your 24-room one.
-3. **Rooms tab** — pick the multi-room property from the dropdown, then add each room (own photos, rent, availability) individually.
-4. **Tiffin tab** / **Inventory tab** — same idea, simpler forms.
-5. **Custom Details** — on any property/room, click "+ Add Detail Row" to add anything you think of later (Security, Rules, Parking, Water Timing, etc.) with a show/hide toggle — so you're never stuck with fixed fields again.
-6. **Inquiries tab** — see every "List your property" / general query submitted from the public site, with a one-tap WhatsApp reply button.
-7. Toggle "Available" off instead of deleting when something is rented/sold — keeps your history clean.
-
-Changes show up on your public site within a few seconds — no need to re-upload anything to GitHub again.
+> Note: your query `SELECT * FROM inquires;` had a typo — the table is spelled
+> **`inquiries`** (with the second "i"). That's likely why it errored.
 
 ---
 
-## ABOUT THE "DIFFERENT WHATSAPP NUMBER PER LISTING"
+## 2. UPDATE YOUR SITE FILES
 
-Every property/room/tiffin-area/inventory item has its **own WhatsApp number field** in the admin form — so you can assign a different number per listing whenever you're ready. Until then, just put the same number everywhere, or leave them blank and fill in as you go (the WhatsApp button simply won't work until a number is added).
+1. Open `assets/config.js` in this package.
+2. It already has your Project URL (`https://lqxepeolwteqnmdusqcs.supabase.co`) filled in
+   — you just need to paste your **anon public key** (Supabase → Project Settings → API)
+   in place of `PASTE-YOUR-ANON-PUBLIC-KEY-HERE`.
+3. Confirm `SITE_BASE_URL` matches your real GitHub Pages URL:
+   `https://vaibhavagarwalcool.github.io/one3-Stay/` (already set — update only if it
+   ever changes).
+4. Upload **all files in this package** to your GitHub repo (`one3-Stay`), overwriting the
+   old ones — `index.html`, `admin.html`, the whole `assets/` folder. GitHub Pages will
+   redeploy automatically in about a minute.
 
 ---
 
-## OPTIONAL UPGRADES LATER (still free)
+## 3. MAKE YOUR REPO PRIVATE (hide your source code)
 
-- **Custom domain:** Buy a domain (~₹600-1000/yr, not free) and point it at GitHub Pages — only step that costs money, and entirely optional.
-- **QR code for your link:** Use a free generator like https://www.qr-code-generator.com — print it and stick it at your properties.
-- **Multiple admins:** Add more users in Supabase Authentication for family/staff to manage listings.
+Good news — GitHub Pages works fine with a **private** repository on the free plan; your
+site stays public and viewable by anyone with the link, but nobody can see your source
+code, file structure, or admin.js logic on GitHub.
+
+1. Go to `https://github.com/vaibhavagarwalcool/one3-Stay` → **Settings** (top of repo).
+2. Scroll to the **Danger Zone** at the bottom → **Change visibility** → **Make private**.
+3. Confirm. Your GitHub Pages link keeps working exactly the same — only the code view
+   on GitHub itself becomes private.
+
+> One caveat: your Supabase **anon key** is still visible to anyone who opens your
+> browser's dev tools while using the live site (this is normal and safe — it's a
+> public-by-design key, and your actual data access is controlled by the RLS policies
+> in `schema-v2.sql`, not by hiding the key).
+
+---
+
+## 4. BACKING UP / EXPORTING YOUR DATA
+
+You now have **two ways** to back up everything you've filled in:
+
+**A. One-click from your own Admin panel (recommended)**
+Admin → top-right → **⬇️ Export Full Backup (JSON)**. Downloads a single file with every
+property, room, tiffin area, inventory item, service, quick contact, and setting. Keep
+these files safe — if you ever rebuild the UI again, this JSON is everything needed to
+re-populate it.
+
+**B. Directly from Supabase (per table)**
+Table Editor → open a table → **⋮ menu → Export data as CSV**. Do this per table if you
+want spreadsheet-style backups instead of JSON.
+
+> Supabase's free tier doesn't include automatic daily database backups — exporting
+> manually every so often (e.g. after a big round of edits) is the free way to stay safe.
+
+---
+
+## 5. HOW SHARING WORKS
+
+Every card has a 🔗 **Share** button.
+- On a phone, it opens the native share sheet — the person can send the direct link over
+  WhatsApp, SMS, email, anywhere.
+- On a desktop browser, it copies the link to the clipboard and shows "✅ Copied".
+- The link looks like: `https://vaibhavagarwalcool.github.io/one3-Stay/?type=property&id=9`
+- Opening that link loads your whole site as normal, but automatically pops up the detail
+  view for that exact listing — so anyone can view and share individual flats, rooms,
+  tiffin areas, items, or services without needing to browse the whole site.
+
+---
+
+## 6. PINNING, SORT ORDER & DEFAULT TAB
+
+- **Pinned** (checkbox on any property/room/tiffin/inventory/service form): pinned items
+  always show first, with a ⭐ Featured ribbon on properties.
+- **Sort Order** (number field): within the pinned group and within the unpinned group,
+  lower numbers show earlier. Leave at 0 if you don't care about fine ordering.
+- **Default Tab**: Admin → ⚙️ Settings → pick which tab (Properties/Tiffin/Items for
+  Sale/Services/List-Inquire) visitors see first when they open your site.
+
+---
+
+## 7. SETTING THE MAIN / COVER PHOTO
+
+In any Add/Edit form with photos, you'll see thumbnails under **Photos**. The first one
+(marked "MAIN") is what shows on the card and as the top of the gallery. Click **★** on
+any other photo to make it the new main photo instantly — no re-uploading needed.
+
+---
+
+## 8. DUPLICATING A LISTING
+
+Every properties/rooms/tiffin/inventory/services list in Admin now has a **Duplicate**
+button next to Edit/Delete. It opens the Add form pre-filled with all the same details
+(title gets "(Copy)" appended) — just tweak what's different (e.g. area, price, photos)
+and Save to create a new listing quickly.
+
+---
+
+## 9. QUICK CONTACTS ("Are you a broker/tenant/...")
+
+Admin → 💬 Quick Contacts. Comes pre-loaded with Broker, Tenant, Supplier, Interior
+Partner, and Lawyer Partner — each with its own emoji, prefilled WhatsApp message, and
+number. Edit the WhatsApp numbers to your real ones, add more roles (e.g. "Painter",
+"Photographer") anytime, and reorder with Sort Order.
+
+---
+
+## 10. THE NEW "SERVICES" SECTION
+
+Admin → 🛠️ Services. Pre-loaded with all 14 services you listed (rental/legal drafting,
+trademark registration, website building, packers & movers, RO/AC service, electrician,
+cleaning, lift service, tile installation, interior consultation, PG/rental maintenance,
+gemstones, bulk anaj & spices, bulk building material). Edit descriptions, prices, and
+WhatsApp numbers per service, or add new ones — each gets its own card with a WhatsApp
+Inquire button on the public site's "🛠️ Services" tab.
+
+---
+
+## 11. UPLOADING PHOTOS & VIDEOS (unchanged, still free)
+
+- **Photos:** use the file picker in any Admin form — uploads straight to your free
+  Supabase Storage (1GB free ≈ 1,000–2,000 phone photos). Or paste public image links
+  (Google Photos share link, imgbb.com, Drive "Anyone with link").
+- **Videos:** upload to YouTube as **Unlisted**, paste the link. Or use a Google Drive
+  link set to "Anyone with the link can view."
 
 ---
 
 ## TROUBLESHOOTING
 
-- **"Could not load data" on the site:** double-check `assets/config.js` has the correct Supabase URL + anon key (Step 5), no extra spaces/quotes issues.
-- **Admin login fails:** make sure the user was created in Supabase Authentication (Step 3), and "Auto Confirm User" was checked (otherwise it expects email confirmation, which needs email sending set up — auto-confirm avoids that).
-- **Photos not showing after upload:** confirm the `photos` storage bucket is set to **Public** (Step 4).
-- **Changes not appearing on the public site:** hard-refresh the page (Ctrl/Cmd+Shift+R) — browsers sometimes cache the page.
+- **"Could not load data"** → double-check `assets/config.js` has the right anon key.
+- **Admin login fails** → confirm the user exists in Supabase → Authentication → Users,
+  with "Auto Confirm User" ticked.
+- **Shared link doesn't open the right listing** → make sure `SITE_BASE_URL` in
+  `assets/config.js` exactly matches your live GitHub Pages URL (including trailing `/`).
+- **Photos not showing after upload** → confirm the `photos` Storage bucket is Public
+  (schema-v2.sql creates/re-confirms this automatically).
+- **Changes not showing on the public site** → hard refresh (Ctrl/Cmd+Shift+R).
